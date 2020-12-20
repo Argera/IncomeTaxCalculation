@@ -28,111 +28,59 @@ public class Taxpayer {
 	}
 	
 	private void setBasicTaxBasedOnFamilyStatus(){
+		int[] upperBound = null;
+		double[] base = null;
+		double[] percentage = null;
+		
 		switch(familyStatus.toLowerCase()){
 			case("married filing jointly"):
-				basicTax = calculateTaxForMarriedFilingJointlyTaxpayerFamilyStatus(income);
+				upperBound = new int[]{36080, 90000, 143350, 254240};
+				base = new double[]{1930.28, 5731.64, 9492.82, 18197.69};
+				percentage = new double[]{7.05, 7.05, 7.85, 9.85};				
 				break;
 			case("married filing separately"):
-				basicTax = calculateTaxForMarriedFilingSeparately(income);
+				upperBound = new int[]{18040, 71680, 90000, 127120};
+				base = new double[]{965.14, 4746.76, 6184.88, 9098.80};
+				percentage = new double[]{7.05, 7.85, 7.85, 9.85};
 				break;
 			case("single"):
-				basicTax = calculateTaxForSingles(income);
+				upperBound = new int[]{24680, 81080, 90000, 152540};
+				base = new double[]{1320.38, 5296.58, 5996.80, 10906.19};
+				percentage = new double[]{7.05, 7.85, 7.85, 9.85};
 				break;
 			case("head of household"):
-				basicTax = calculateTaxForHeadOfHousehold(income);
+				upperBound = new int[]{30390, 90000, 122110, 203390};
+				base = new double[]{1625.87, 5828.38, 8092.13, 14472.61};
+				percentage = new double[]{7.05, 7.05, 7.85, 9.85};
 				break;
 		}
 		
+		basicTax = calculateTax(income, upperBound, base, percentage);
 		totalTax = basicTax;
 	}
 	
-	public double calculateTaxForMarriedFilingJointlyTaxpayerFamilyStatus(double totalIncome){
+	public double calculateTax(double totalIncome, int[] upperBound, double[] base, double[] percentage){
 		double tax;
 		
-		if (totalIncome < 36080){
-			tax = (5.35/100) * totalIncome;
+		if (totalIncome < upperBound[0]){
+			tax = 0.0535 * totalIncome;
 		}
-		else if (totalIncome < 90000){
-			tax = 1930.28 + ((7.05/100) * (totalIncome-36080));
+		else if (totalIncome < upperBound[1]){
+			tax = base[0] + ((percentage[0]/100) * (totalIncome-upperBound[0]));
 		}
-		else if (totalIncome < 143350){
-			tax = 5731.64 + ((7.05/100) * (totalIncome-90000));
+		else if (totalIncome < upperBound[2]){
+			tax = base[1] + ((percentage[1]/100) * (totalIncome-upperBound[1]));
 		}
-		else if (totalIncome < 254240){
-			tax = 9492.82 + ((7.85/100) * (totalIncome-143350));
+		else if (totalIncome < upperBound[3]){
+			tax = base[2] + ((percentage[2]/100) * (totalIncome-upperBound[2]));
 		}
 		else{
-			tax = 18197.69 + ((9.85/100) * (totalIncome-254240));
+			tax = base[3] + ((percentage[3]/100) * (totalIncome-upperBound[3]));
 		}
 		
 		return tax;
 	}
 	
-	public double calculateTaxForMarriedFilingSeparately(double totalIncome){
-		double tax;
-		
-		if (totalIncome < 18040){
-			tax = (5.35/100) * totalIncome;
-		}
-		else if (totalIncome < 71680){
-			tax = 965.14 + ((7.05/100) * (totalIncome-18040));
-		}
-		else if (totalIncome < 90000){
-			tax = 4746.76 + ((7.85/100) * (totalIncome-71680));
-		}
-		else if (totalIncome < 127120){
-			tax = 6184.88 + ((7.85/100) * (totalIncome-90000));
-		}
-		else{
-			tax = 9098.80 + ((9.85/100) * (totalIncome-127120));
-		}
-		
-		return tax;
-	}
-	
-	public double calculateTaxForSingles(double totalIncome){
-		double tax;
-		
-		if (totalIncome < 24680){
-			tax = (5.35/100) * totalIncome;
-		}
-		else if (totalIncome < 81080){
-			tax = 1320.38 + ((7.05/100) * (totalIncome-24680));
-		}
-		else if (totalIncome < 90000){
-			tax = 5296.58 + ((7.85/100) * (totalIncome-81080));
-		}
-		else if (totalIncome < 152540){
-			tax = 5996.80 + ((7.85/100) * (totalIncome-90000));
-		}
-		else{
-			tax = 10906.19 + ((9.85/100) * (totalIncome-152540));
-		}
-		
-		return tax;
-	}
-	
-	public double calculateTaxForHeadOfHousehold(double totalIncome){
-		double tax;
-		
-		if (totalIncome < 30390){
-			tax = (5.35/100) * totalIncome;
-		}
-		else if (totalIncome < 90000){
-			tax = 1625.87 + ((7.05/100) * (totalIncome-30390));
-		}
-		else if (totalIncome < 122110){
-			tax = 5828.38 + ((7.05/100) * (totalIncome-90000));
-		}
-		else if (totalIncome < 203390){
-			tax = 8092.13 + ((7.85/100) * (totalIncome-122110));
-		}
-		else{
-			tax = 14472.61 + ((9.85/100) * (totalIncome-203390));
-		}
-		
-		return tax;
-	}
 	
 	public String toString(){
 		return "Name: "+name
@@ -163,66 +111,16 @@ public class Taxpayer {
 		return receiptsList;
 	}
 	
-	public double getBasicReceiptsTotalAmount(){
-		double basicReceiptsTotalAmount = 0;
+	public double getReceiptsTotalAmount(String receiptType){
+		double receiptsTotalAmount = 0;
 		
 		for (Receipt receipt : receipts){
-			if (receipt.getKind().equals("Basic")){
-				basicReceiptsTotalAmount += receipt.getAmount();
+			if (receipt.getKind().equals(receiptType)){
+				receiptsTotalAmount += receipt.getAmount();
 			}
 		}
 		
-		return (new BigDecimal(basicReceiptsTotalAmount).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue());
-	}
-	
-	public double getEntertainmentReceiptsTotalAmount(){
-		double entertainmentReceiptsTotalAmount = 0;
-		
-		for (Receipt receipt : receipts){
-			if (receipt.getKind().equals("Entertainment")){
-				entertainmentReceiptsTotalAmount += receipt.getAmount();
-			}
-		}
-		
-		return (new BigDecimal(entertainmentReceiptsTotalAmount).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue());
-	}
-	
-	public double getTravelReceiptsTotalAmount(){
-		double travelReceiptsTotalAmount = 0;
-		
-		for (Receipt receipt : receipts){
-			if (receipt.getKind().equals("Travel")){
-				travelReceiptsTotalAmount += receipt.getAmount();
-			}
-		}
-		
-		return (new BigDecimal(travelReceiptsTotalAmount).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue());
-	}
-	
-	public double getHealthReceiptsTotalAmount(){
-		double healthReceiptsTotalAmount = 0;
-		
-		for (Receipt receipt : receipts){
-			if (receipt.getKind().equals("Health")){
-				healthReceiptsTotalAmount += receipt.getAmount();
-			}
-		}
-		
-		return (new BigDecimal(healthReceiptsTotalAmount).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue());
-	}
-	
-	
-	
-	public double getOtherReceiptsTotalAmount(){
-		double otherReceiptsTotalAmount = 0;
-		
-		for (Receipt receipt : receipts){
-			if (receipt.getKind().equals("Other")){
-				otherReceiptsTotalAmount += receipt.getAmount();
-			}
-		}
-		
-		return (new BigDecimal(otherReceiptsTotalAmount).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue());
+		return (new BigDecimal(receiptsTotalAmount).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue());
 	}
 	
 	public double getTotalReceiptsAmount(){
